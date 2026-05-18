@@ -11,7 +11,7 @@ app.use(express.json());
 // ---------- НАСТРОЙКИ API (через переменные окружения) ----------
 const API_KEY = process.env.PROXY_API_KEY || process.env.DEEPSEEK_API_KEY;
 const API_BASE_URL = process.env.API_BASE_URL || 'https://openai.api.proxyapi.ru/v1/chat/completions';
-const MODEL_NAME = process.env.MODEL_NAME || 'deepseek-chat';
+const MODEL_NAME = process.env.MODEL_NAME || 'openrouter/openrouter/free';
 // -----------------------------------------------------------------
 
 // Простой GET-ответ для проверки работы сервера
