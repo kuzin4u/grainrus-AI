@@ -407,7 +407,7 @@
         let btn = document.querySelector(`.year-btn[data-year="${year}"]`); btn.style.transform='scale(0.95)'; setTimeout(()=>btn.style.transform='',150);
     }
     // AI запрос
-    const SERVER_URL = 'http://localhost:3000/ask';
+    const SERVER_URL = 'https://grainrus-ai.onrender.com/ask';
     async function askAI(question) {
         const responseDiv = document.getElementById('aiResponse');
         responseDiv.innerHTML = '⏳ Отправка запроса...';
