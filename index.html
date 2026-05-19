@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ГрейнРус – интерактивная бизнес-модель</title>
+    <title>ГрейнРус – интерактивная бизнес-модель с подсказками</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -29,6 +29,33 @@
             align-items: center;
         }
         .header h1 { font-size: 1.25rem; }
+        .header-buttons { display: flex; gap: 8px; align-items: center; }
+        .help-btn {
+            background: #f3b33d;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #1f4e2d;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-btn:hover { background: #e09d2c; transform: scale(1.02); }
+        .print-btn {
+            background: #f3b33d;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #1f4e2d;
+        }
         .year-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .year-btn {
             background: rgba(255,255,240,0.2);
@@ -67,6 +94,7 @@
         .slider-group label { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; margin-bottom: 2px; }
         input[type="range"] { width: 100%; height: 4px; background: #d4e2e6; border-radius: 4px; -webkit-appearance: none; }
         input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; background: #f3b33d; border-radius: 50%; cursor: pointer; }
+        input[type="number"] { width: 90px; padding: 2px 4px; border-radius: 12px; border: 1px solid #ccc; font-size: 0.7rem; }
         .value-hint { font-size: 0.6rem; color: #54807c; text-align: right; }
         .const-badge { background: #f6faf9; border-radius: 12px; padding: 4px 8px; font-size: 0.6rem; margin-top: 8px; }
         .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px; }
@@ -99,12 +127,64 @@
         .footer { font-size: 0.6rem; text-align: center; margin-top: 20px; color: #6c8e89; }
         .badge-positive { color: #2a7f6e; }
         .badge-negative { color: #c95a4a; }
-        @media (max-width: 900px) {
+        /* Модальное окно Help */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 20px;
+            padding: 0;
+            border-radius: 28px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-header {
+            background: #2c5e2e;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 28px 28px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+        }
+        .modal-header h2 { font-size: 1.4rem; font-weight: 600; }
+        .modal-header .close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-body { padding: 24px; }
+        .modal-body h3 { color: #2c5e2e; margin: 1rem 0 0.5rem 0; font-size: 1.1rem; }
+        .modal-body p { margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .modal-body ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .modal-body li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+        .modal-body code { background: #eef2f5; padding: 0.1rem 0.3rem; border-radius: 8px; font-size: 0.8rem; }
+        @media (max-width: 700px) {
             .charts-row { grid-template-columns: 1fr; }
             .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .modal-content { width: 95%; }
         }
         @media print {
-            .no-print, .year-buttons, .tabs, .footer, .rec-apply-btn, .print-btn, .api-panel, .preset-editor, .situation-item button, [onclick*="deleteSituation"], #saveSituationBtn, #situationName, .rec-apply-btn { display: none !important; }
+            .no-print, .year-buttons, .tabs, .footer, .rec-apply-btn, .print-btn, .api-panel, .preset-editor, .situation-item button, [onclick*="deleteSituation"], #saveSituationBtn, #situationName, .rec-apply-btn, .modal, .help-btn { display: none !important; }
             body { background: white; padding: 0; margin: 0; }
             .param-card { border: 1px solid #ccc; break-inside: avoid; }
             .kpi-card { border: 1px solid #ccc; }
@@ -116,9 +196,10 @@
 <body>
 <div class="container">
     <div class="header">
-        <div><h1>🌾 ГрейнРус · интерактивная бизнес-модель</h1></div>
-        <div style="display: flex; gap: 10px;">
-            <button class="print-btn" id="printTabBtn" style="background:#f3b33d; border:none; padding:6px 14px; border-radius:40px; font-weight:600; cursor:pointer;">🖨️ Печать</button>
+        <div><h1>🌾 ГрейнРус · бизнес-модель</h1></div>
+        <div class="header-buttons">
+            <button class="help-btn" id="helpBtn">❔</button>
+            <button class="print-btn" id="printTabBtn">🖨️ Печать</button>
             <div class="year-buttons" id="yearButtons">
                 <button class="year-btn" data-year="2025">2025 (факт)</button>
                 <button class="year-btn" data-year="2026">2026</button>
@@ -212,6 +293,48 @@
         <div class="analysis-block" style="margin-top:20px;"><h3>📚 Библиотека рекомендаций</h3><div id="recommendationsList"></div></div>
     </div>
     <div class="footer">📌 Двойной клик по году → сброс к предустановкам. AI-ассистент обновляет предустановки через ваш сервер.</div>
+</div>
+
+<!-- Модальное окно Help -->
+<div id="helpModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📘 Справка по модели</h2>
+            <button class="close" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>🎯 Что такое модель «ГрейнРус»?</h3>
+            <p>Интерактивная бизнес-модель солодовенной компании. Позволяет изменять рыночные и управляемые параметры и мгновенно видеть их влияние на EBITDA, маржинальность, загрузку и другие KPI.</p>
+            
+            <h3>⚙️ Как управлять?</h3>
+            <ul>
+                <li><strong>Слайдеры</strong> – меняйте значения, KPI пересчитываются автоматически.</li>
+                <li><strong>Кнопки годов (2025–2028)</strong> – <strong>одинарный клик</strong> загружает последние настройки для этого года; <strong>двойной клик</strong> сбрасывает параметры к предустановленным (прогнозным) значениям.</li>
+                <li><strong>Вкладка «Анализ + AI»</strong> – динамические рекомендации, редактор предустановок, AI-ассистент.</li>
+            </ul>
+            
+            <h3>🧠 AI-ассистент</h3>
+            <p>Пишите вопросы на естественном языке, например: <code>«обнови цену ячменя на 2026 до 23500»</code>. AI изменит предустановки для указанных годов. После этого двойной клик по кнопке года применит новые значения. <strong>Сервер должен быть запущен</strong> (по умолчанию <code>https://grainrus-ai.onrender.com/ask</code>).</p>
+            
+            <h3>💾 Сохранение ситуаций</h3>
+            <p>На вкладке «Анализ+AI» можно сохранить текущий набор параметров как ситуацию, а затем загрузить её двойным кликом или кнопкой. Ситуации хранятся в браузере.</p>
+            
+            <h3>✏️ Редактирование предустановок</h3>
+            <p>В блоке «Редактирование предустановок годов» вы можете вручную изменить прогнозные значения для каждого года. После нажатия «Применить изменения» двойной клик по году будет использовать новые цифры.</p>
+            
+            <h3>📈 Графики</h3>
+            <p>Три графика показывают тренды рыночных, управляемых и расчётных показателей на 2025–2028 гг. на основе текущих параметров как базового года.</p>
+            
+            <h3>🖨️ Печать</h3>
+            <p>Кнопка «Печать» в заголовке выводит содержимое активной вкладки с сохранением графиков (преобразуются в изображения).</p>
+            
+            <h3>🚀 Запуск на другом компьютере</h3>
+            <p>Достаточно открыть ссылку GitHub Pages. Сервер работает на Render, отдельной установки не требуется. AI-ассистент будет доступен с любого устройства.</p>
+            
+            <h3>📞 Вопросы и поддержка</h3>
+            <p>При возникновении проблем проверьте консоль браузера (F12) и логи сервера на Render. Обращайтесь к разработчику.</p>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -625,6 +748,16 @@
         printWindow.print();
     }
     
+    // ---- Модальное окно Help ----
+    function initHelp() {
+        const modal = document.getElementById('helpModal');
+        const helpBtn = document.getElementById('helpBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        helpBtn.addEventListener('click', () => modal.style.display = 'flex');
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    
     // ---- Инициализация ----
     function init() {
         loadPresetsFromStorage();
@@ -668,6 +801,7 @@
         
         loadSituations();
         renderRecommendations();
+        initHelp();
     }
     init();
 </script>
