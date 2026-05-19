@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ГрейнРус – интерактивная бизнес-модель с подсказками</title>
+    <title>ГрейнРус – бизнес-модель с AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -35,6 +35,768 @@
             border: none;
             width: 32px;
             height: 32px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #1f4e2d;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-btn:hover { background: #e09d2c; transform: scale(1.02); }
+        .print-btn {
+            background: #f3b33d;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #1f4e2d;
+        }
+        .year-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .year-btn {
+            background: rgba(255,255,240,0.2);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: white;
+        }
+        .year-btn.active { background: #f3b33d; color: #1f4e2d; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #1f4e2d;
+        }
+        .tab-btn.active { background: #2c5e2e; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .param-card {
+            background: white;
+            border-radius: 18px;
+            padding: 8px 12px;
+            border-top: 4px solid;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .param-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+        .slider-group { margin-bottom: 8px; }
+        .slider-group label { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 600; margin-bottom: 2px; }
+        input[type="range"] { width: 100%; height: 4px; background: #d4e2e6; border-radius: 4px; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; background: #f3b33d; border-radius: 50%; cursor: pointer; }
+        input[type="number"] { width: 90px; padding: 2px 4px; border-radius: 12px; border: 1px solid #ccc; font-size: 0.7rem; }
+        .value-hint { font-size: 0.6rem; color: #54807c; text-align: right; }
+        .const-badge { background: #f6faf9; border-radius: 12px; padding: 4px 8px; font-size: 0.6rem; margin-top: 8px; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px; }
+        .kpi-card { background: white; border-radius: 16px; padding: 6px 4px; text-align: center; border: 1px solid #e0ecf0; }
+        .kpi-label { font-size: 0.6rem; font-weight: 700; color: #54807c; text-transform: uppercase; }
+        .kpi-value { font-size: 1.2rem; font-weight: 800; color: #1f3e3c; line-height: 1.2; }
+        .kpi-unit { font-size: 0.55rem; color: #6b908b; }
+        .cost-row { background: white; border-radius: 18px; padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.7rem; margin-bottom: 8px; border: 1px solid #e2edf2; }
+        .charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; margin-bottom: 16px; }
+        .chart-card { background: white; border-radius: 20px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .chart-card h4 { font-size: 0.9rem; margin-bottom: 10px; color: #1f4e2d; text-align: center; }
+        canvas { max-height: 220px; width: 100%; }
+        .double-chart { margin-top: 20px; }
+        .analysis-block { background: white; border-radius: 24px; padding: 20px; margin-top: 20px; border-left: 6px solid #2c5e2e; }
+        .analysis-block h3 { color: #1f4e2d; margin-bottom: 12px; margin-top: 16px; }
+        .rec-item { margin-bottom: 16px; border-bottom: 1px solid #e0ecf0; padding-bottom: 12px; }
+        .rec-title { font-weight: 700; color: #2c5e2e; }
+        .rec-detail { margin-top: 6px; font-size: 0.85rem; background: #f9f9f9; padding: 6px 10px; border-radius: 12px; }
+        .situation-item { background: #f0f7f0; padding: 8px 12px; border-radius: 20px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .situation-name { font-weight: 600; cursor: pointer; }
+        .rec-apply-btn { background: #2c5e2e; color: white; border: none; padding: 4px 12px; border-radius: 30px; cursor: pointer; font-size: 0.7rem; margin-left: 10px; }
+        .preset-editor { background: white; border-radius: 24px; padding: 20px; margin-top: 20px; border: 1px solid #e0ecf0; }
+        .preset-year { margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 12px; }
+        .preset-year h4 { color: #2c5e2e; margin-bottom: 10px; }
+        .preset-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 8px; }
+        .preset-field { display: flex; flex-direction: column; font-size: 0.7rem; }
+        .preset-field label { font-weight: 600; margin-bottom: 2px; }
+        .api-panel { background: #f9f9f9; border-radius: 20px; padding: 15px; margin-top: 20px; }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .footer { font-size: 0.6rem; text-align: center; margin-top: 20px; color: #6c8e89; }
+        .badge-positive { color: #2a7f6e; }
+        .badge-negative { color: #c95a4a; }
+        /* Модальное окно Help */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 20px;
+            padding: 0;
+            border-radius: 28px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-header {
+            background: #2c5e2e;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 28px 28px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+        }
+        .modal-header h2 { font-size: 1.4rem; font-weight: 600; }
+        .modal-header .close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-body { padding: 24px; }
+        .modal-body h3 { color: #2c5e2e; margin: 1rem 0 0.5rem 0; font-size: 1.1rem; }
+        .modal-body p { margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .modal-body ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .modal-body li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+        .modal-body code { background: #eef2f5; padding: 0.1rem 0.3rem; border-radius: 8px; font-size: 0.8rem; }
+        @media (max-width: 700px) {
+            .charts-row { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .modal-content { width: 95%; }
+        }
+        @media print {
+            .no-print, .year-buttons, .tabs, .footer, .rec-apply-btn, .print-btn, .api-panel, .preset-editor, .situation-item button, [onclick*="deleteSituation"], #saveSituationBtn, #situationName, .rec-apply-btn, .modal, .help-btn { display: none !important; }
+            body { background: white; padding: 0; margin: 0; }
+            .param-card { border: 1px solid #ccc; break-inside: avoid; }
+            .kpi-card { border: 1px solid #ccc; }
+            .chart-card { break-inside: avoid; }
+            canvas { max-width: 100%; height: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div><h1>🌾 ГрейнРус · бизнес-модель</h1></div>
+        <div class="header-buttons">
+            <button class="help-btn" id="helpBtn">❔</button>
+            <button class="print-btn" id="printTabBtn">🖨️ Печать</button>
+            <div class="year-buttons" id="yearButtons">
+                <button class="year-btn" data-year="2025">2025 (факт)</button>
+                <button class="year-btn" data-year="2026">2026</button>
+                <button class="year-btn" data-year="2027">2027</button>
+                <button class="year-btn" data-year="2028">2028</button>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="model">📊 Модель</button>
+        <button class="tab-btn" data-tab="analysis">📈 Анализ + AI</button>
+    </div>
+
+    <!-- Вкладка Модель -->
+    <div id="modelTab" class="tab-content active">
+        <div class="params-wrapper" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+            <div class="param-card" style="border-top-color: #3c8d7c;">
+                <h3>🌾 Рыночные параметры</h3>
+                <div class="slider-group"><label>Цена ячменя (руб/т) <span id="barleyVal">20574</span></label><input type="range" id="barley" min="10000" max="26000" step="50" value="20574"></div>
+                <div class="slider-group"><label>Урожайность (ц/га) <span id="yieldVal">24.6</span></label><input type="range" id="yield_" min="20" max="55" step="0.1" value="24.6"></div>
+                <div class="slider-group"><label>Спрос на пиво (%) <span id="demandVal">83.3</span></label><input type="range" id="demand" min="70" max="130" step="0.5" value="83.3"></div>
+            </div>
+            <div class="param-card" style="border-top-color: #e5a13a;">
+                <h3>⚙️ Управляемые параметры</h3>
+                <div class="slider-group"><label>🏷️ Базовая цена солода (руб/т) <span id="basePriceVal">33500</span></label><input type="range" id="basePrice" min="25000" max="45000" step="100" value="33500"></div>
+                <div class="slider-group"><label>📊 Целевая загрузка (%) <span id="loadVal">95</span></label><input type="range" id="load" min="45" max="98" step="1" value="95"></div>
+                <div class="slider-group"><label>🧪 Потери waste (%) <span id="wasteVal">6.0</span></label><input type="range" id="waste" min="2" max="12" step="0.2" value="6.0"></div>
+                <div class="slider-group"><label>🌡️ Эффективность сушки (% расхода) <span id="energyVal">100</span></label><input type="range" id="energy" min="60" max="140" step="2" value="100"></div>
+                <div class="slider-group"><label>📄 Долгосрочные контракты (%) <span id="contractsVal">70</span></label><input type="range" id="contracts" min="0" max="90" step="2" value="70"></div>
+                <div class="slider-group"><label>🍺 Доля крафтовых клиентов (%) <span id="craftVal">2.0</span></label><input type="range" id="craft" min="0" max="30" step="0.5" value="2.0"></div>
+            </div>
+            <div class="param-card" style="border-top-color: #658c7b;">
+                <h3>🏛️ Постоянные и структурные</h3>
+                <div class="const-badge">🏭 Мощность: 256 000 т/год<br>📆 Пост. затраты: 1 375 млн ₽</div>
+                <div class="slider-group"><label>💰 Пост. на тонну (эффект масштаба)</label><div class="value-hint" id="fixedHintScale">—</div></div>
+                <div class="const-badge">⚡ База энергозатрат: 1250 ₽/т<br>💧 Прочие перем. база: 1500 ₽/т</div>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-label">Загрузка итог</div><div class="kpi-value" id="finalLoad">—</div><div class="kpi-unit">%</div></div>
+            <div class="kpi-card"><div class="kpi-label">Объём</div><div class="kpi-value" id="volume">—</div><div class="kpi-unit">т</div></div>
+            <div class="kpi-card"><div class="kpi-label">Выручка</div><div class="kpi-value" id="revenue">—</div><div class="kpi-unit">млн ₽</div></div>
+            <div class="kpi-card"><div class="kpi-label">Маржинальность</div><div class="kpi-value" id="contrMarginPct">—</div><div class="kpi-unit">%</div></div>
+            <div class="kpi-card"><div class="kpi-label">EBITDA</div><div class="kpi-value" id="ebitda">—</div><div class="kpi-unit">млн ₽</div></div>
+            <div class="kpi-card"><div class="kpi-label">EBITDA margin</div><div class="kpi-value" id="ebitdaMargin">—</div><div class="kpi-unit">%</div></div>
+        </div>
+
+        <div class="cost-row">
+            <span class="cost-item"><span class="cost-label">🌾 Ячмень</span><span class="cost-value" id="barleyCostDetail">—</span></span>
+            <span class="cost-item"><span class="cost-label">⚡ Энергия</span><span class="cost-value" id="energyCostDetail">—</span></span>
+            <span class="cost-item"><span class="cost-label">💧 Прочие перем.</span><span class="cost-value" id="otherVarDetail">—</span></span>
+            <span class="cost-item"><span class="cost-label">📦 Переменные всего /т</span><span class="cost-value" id="totalVcPerTon">—</span></span>
+            <span class="cost-item"><span class="cost-label">🏛️ Постоянные /т</span><span class="cost-value" id="fixedPerTonDetail">—</span></span>
+            <span class="cost-item"><span class="cost-label">💰 Себест. полная /т</span><span class="cost-value" id="fullCostPerTon">—</span></span>
+            <span class="cost-item"><span class="cost-label">🏷️ Цена ср. /т</span><span class="cost-value" id="avgPricePerTon">—</span></span>
+            <span class="cost-item"><span class="cost-label">🎯 Контриб. /т</span><span class="cost-value" id="contrPerTon">—</span></span>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card"><h4>📈 Рыночные параметры (тренд)</h4><canvas id="marketChart"></canvas></div>
+            <div class="chart-card"><h4>⚙️ Управляемые параметры (тренд)</h4><canvas id="controlChart"></canvas></div>
+            <div class="chart-card"><h4>💰 Расчётные показатели</h4><canvas id="financialChart"></canvas></div>
+        </div>
+        <div class="chart-card double-chart"><h4>📊 Выручка и объём производства</h4><canvas id="revenueVolumeChart"></canvas></div>
+        <div class="mix-info" id="mixInfo" style="background:#fef5e8; border-radius:14px; padding:6px 12px; font-size:0.65rem; margin-top:8px;"></div>
+    </div>
+
+    <!-- Вкладка Анализ + AI -->
+    <div id="analysisTab" class="tab-content">
+        <div class="analysis-block" id="analysisText"></div>
+
+        <div class="api-panel">
+            <h3>🤖 AI-ассистент для обновления предустановок</h3>
+            <div class="flex-row">
+                <input type="text" id="aiQuestion" placeholder="Например: обнови цену ячменя на 2026 до 23500" style="flex:1; padding:8px; border-radius:40px; border:1px solid #ccc;">
+                <button id="askAiBtn" class="rec-apply-btn">Отправить вопрос AI</button>
+            </div>
+            <div id="aiResponse" style="font-size:0.8rem; margin-top:8px;"></div>
+            <p class="value-hint">Сервер работает на https://grainrus-ai.onrender.com. AI изменит предустановки для указанных годов. Двойной клик по кнопке года сбросит параметры к новым значениям.</p>
+        </div>
+
+        <div class="preset-editor" id="presetEditorContainer"></div>
+        <div class="api-panel">
+            <button id="savePresetsBtn" class="rec-apply-btn">💾 Сохранить предустановки</button>
+            <button id="resetPresetsBtn" class="rec-apply-btn">⟳ Сбросить предустановки к исходным</button>
+        </div>
+
+        <div class="analysis-block" style="margin-top:20px;"><h3>💾 Сохранённые ситуации</h3><div id="situationsList">Загрузка...</div>
+        <div class="flex-row" style="margin-top:12px;"><input type="text" id="situationName" placeholder="Название ситуации" style="flex:1; padding:6px; border-radius:30px; border:1px solid #ccc;"><button id="saveSituationBtn" class="rec-apply-btn">💾 Сохранить текущую</button></div></div>
+        <div class="analysis-block" style="margin-top:20px;"><h3>📚 Библиотека рекомендаций</h3><div id="recommendationsList"></div></div>
+    </div>
+    <div class="footer">📌 Двойной клик по году → сброс к предустановкам. AI-ассистент обновляет предустановки через ваш сервер.</div>
+</div>
+
+<!-- Модальное окно Help -->
+<div id="helpModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📘 Справка по модели</h2>
+            <button class="close" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>🎯 Что такое модель «ГрейнРус»?</h3>
+            <p>Интерактивная бизнес-модель солодовенной компании. Позволяет изменять рыночные и управляемые параметры и мгновенно видеть их влияние на EBITDA, маржинальность, загрузку и другие KPI.</p>
+            
+            <h3>⚙️ Как управлять?</h3>
+            <ul>
+                <li><strong>Слайдеры</strong> – меняйте значения, KPI пересчитываются автоматически.</li>
+                <li><strong>Кнопки годов (2025–2028)</strong> – <strong>одинарный клик</strong> загружает последние настройки для этого года; <strong>двойной клик</strong> сбрасывает параметры к предустановленным (прогнозным) значениям.</li>
+                <li><strong>Вкладка «Анализ + AI»</strong> – динамические рекомендации, редактор предустановок, AI-ассистент.</li>
+            </ul>
+            
+            <h3>🧠 AI-ассистент</h3>
+            <p>Пишите вопросы на естественном языке, например: <code>«обнови цену ячменя на 2026 до 23500»</code>. AI изменит предустановки для указанных годов. После этого двойной клик по кнопке года применит новые значения. <strong>Сервер должен быть запущен</strong> (по умолчанию <code>https://grainrus-ai.onrender.com/ask</code>).</p>
+            
+            <h3>💾 Сохранение ситуаций</h3>
+            <p>На вкладке «Анализ+AI» можно сохранить текущий набор параметров как ситуацию, а затем загрузить её двойным кликом или кнопкой. Ситуации хранятся в браузере.</p>
+            
+            <h3>✏️ Редактирование предустановок</h3>
+            <p>В блоке «Редактирование предустановок годов» вы можете вручную изменить прогнозные значения для каждого года. После нажатия «Применить изменения» двойной клик по году будет использовать новые цифры.</p>
+            
+            <h3>📈 Графики</h3>
+            <p>Три графика показывают тренды рыночных, управляемых и расчётных показателей на 2025–2028 гг. на основе текущих параметров как базового года.</p>
+            
+            <h3>🖨️ Печать</h3>
+            <p>Кнопка «Печать» в заголовке выводит содержимое активной вкладки с сохранением графиков (преобразуются в изображения).</p>
+            
+            <h3>🚀 Запуск на другом компьютере</h3>
+            <p>Достаточно открыть ссылку GitHub Pages. Сервер работает на Render, отдельной установки не требуется. AI-ассистент будет доступен с любого устройства.</p>
+            
+            <h3>📞 Вопросы и поддержка</h3>
+            <p>При возникновении проблем проверьте консоль браузера (F12) и логи сервера на Render. Обращайтесь к разработчику.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================== НАСТРОЙКА URL СЕРВЕРА ========================
+    const SERVER_URL = 'https://grainrus-ai.onrender.com/ask';
+    // =======================================================================
+
+    // ---------- КОНСТАНТЫ МОДЕЛИ ----------
+    const CAPACITY = 256000;
+    const FIXED_COSTS = 1_375_000_000;
+    const BASE_ENERGY = 1250;
+    const BASE_OTHER = 1500;
+    const SPEC_PRICE_MULT = { caramel: 1.55, roasted: 1.80, smoked: 2.12, hop: 1.85, tolling: 1.70 };
+    const SPEC_VC_MULT   = { caramel: 1.28, roasted: 1.35, smoked: 1.45, hop: 1.40, tolling: 1.30 };
+    const PRODUCT_MIX = { base: 0.95, caramel: 0.02, roasted: 0.01, smoked: 0.005, hop: 0.01, tolling: 0.005 };
+    
+    function getQualityMultiplier(energy) {
+        if (energy <= 75) return Math.max(0.85, 1 - (75 - energy) * 0.004);
+        else if (energy <= 95) return Math.min(1.05, 1 + (energy - 75) * 0.0005);
+        else return Math.max(0.85, 1 - (energy - 95) * 0.002);
+    }
+    
+    const DEFAULT_PRESETS = {
+        2025: { barley:20574, yield:24.6, demand:83.3, basePrice:33500, load:95, waste:6.0, energy:100, contracts:70, craft:2.0 },
+        2026: { barley:22000, yield:24.3, demand:90.0, basePrice:34600, load:92, waste:6.0, energy:104, contracts:68, craft:1.8 },
+        2027: { barley:24175, yield:24.0, demand:97.5, basePrice:35800, load:87, waste:6.0, energy:108, contracts:70, craft:1.5 },
+        2028: { barley:22000, yield:26.0, demand:83.3, basePrice:37000, load:80, waste:6.0, energy:112, contracts:65, craft:2.5 }
+    };
+    
+    let yearPresets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+    let currentParamsPerYear = {};
+    for (let y of [2025,2026,2027,2028]) currentParamsPerYear[y] = JSON.parse(JSON.stringify(yearPresets[y]));
+    let activeYear = 2025;
+    let currentParams = { ...currentParamsPerYear[activeYear] };
+    
+    function getSliderValues() {
+        return {
+            barley: parseFloat(document.getElementById('barley').value),
+            yield: parseFloat(document.getElementById('yield_').value),
+            demand: parseFloat(document.getElementById('demand').value),
+            basePrice: parseFloat(document.getElementById('basePrice').value),
+            load: parseFloat(document.getElementById('load').value),
+            waste: parseFloat(document.getElementById('waste').value),
+            energy: parseFloat(document.getElementById('energy').value),
+            contracts: parseFloat(document.getElementById('contracts').value),
+            craft: parseFloat(document.getElementById('craft').value)
+        };
+    }
+    
+    function setSlidersFromParams(p) {
+        document.getElementById('barley').value = p.barley;
+        document.getElementById('yield_').value = p.yield;
+        document.getElementById('demand').value = p.demand;
+        document.getElementById('basePrice').value = p.basePrice;
+        document.getElementById('load').value = p.load;
+        document.getElementById('waste').value = p.waste;
+        document.getElementById('energy').value = p.energy;
+        document.getElementById('contracts').value = p.contracts;
+        document.getElementById('craft').value = p.craft;
+        updateSliderDisplays(p);
+    }
+    
+    function updateSliderDisplays(p) {
+        document.getElementById('barleyVal').innerText = p.barley;
+        document.getElementById('yieldVal').innerText = p.yield.toFixed(1);
+        document.getElementById('demandVal').innerText = p.demand.toFixed(1);
+        document.getElementById('basePriceVal').innerText = p.basePrice;
+        document.getElementById('loadVal').innerText = p.load;
+        document.getElementById('wasteVal').innerText = p.waste.toFixed(1);
+        document.getElementById('energyVal').innerText = p.energy;
+        document.getElementById('contractsVal').innerText = p.contracts;
+        document.getElementById('craftVal').innerText = p.craft.toFixed(1);
+    }
+    
+    function computeFinance(p) {
+        let yieldEffect = (p.yield - 36) * 0.003;
+        let effectiveBarley = p.barley * (1 - yieldEffect);
+        if (effectiveBarley < p.barley * 0.5) effectiveBarley = p.barley * 0.5;
+        let barleyRate = 1.32 * (1 + p.waste / 100);
+        let barleyCost = barleyRate * effectiveBarley;
+        let energyCost = BASE_ENERGY * (p.energy / 100);
+        let otherVar = BASE_OTHER * (p.waste / 6);
+        let varBase = barleyCost + energyCost + otherVar;
+        let demandEffect = (p.demand - 100) * 0.55;
+        let contractsEffect = (p.contracts - 50) * 0.0055;
+        let rawLoad = p.load + demandEffect + contractsEffect;
+        let finalLoad = Math.min(98, Math.max(45, rawLoad));
+        let volume = CAPACITY * (finalLoad / 100);
+        let contractMult = 1 + (p.contracts - 50) * 0.0006;
+        let craftMult = 1 + (p.craft - 2) * 0.005;
+        let basePriceBeforeQuality = p.basePrice * contractMult * craftMult;
+        let qualityMult = getQualityMultiplier(p.energy);
+        let basePrice = basePriceBeforeQuality * qualityMult;
+        function getVC(prod) { return prod === 'base' ? varBase : varBase * SPEC_VC_MULT[prod]; }
+        function getPrice(prod) { return prod === 'base' ? basePrice : basePrice * SPEC_PRICE_MULT[prod]; }
+        let totalShare = 0; for (let s of Object.values(PRODUCT_MIX)) totalShare += s;
+        let revenues = 0, varCosts = 0;
+        for (let [prod, share] of Object.entries(PRODUCT_MIX)) {
+            let q = volume * (share / totalShare);
+            revenues += q * getPrice(prod);
+            varCosts += q * getVC(prod);
+        }
+        let contribution = revenues - varCosts;
+        let ebitda = contribution - FIXED_COSTS;
+        let margin = revenues > 0 ? (contribution / revenues * 100) : 0;
+        let ebitdaMargin = revenues > 0 ? (ebitda / revenues * 100) : 0;
+        let fixedPerTon = FIXED_COSTS / volume;
+        let avgPrice = revenues / volume;
+        let varPerTon = varCosts / volume;
+        return { finalLoad, volume, revenues, margin, ebitda, ebitdaMargin, fixedPerTon, avgPrice, varPerTon,
+                 barleyCost, energyCost, otherVar, contributionPerTon: contribution/volume, basePrice, qualityMult };
+    }
+    
+    const multTrend = {
+        barley: [1.0, 1.0693, 1.175, 1.0693], yield: [1.0, 0.9878, 0.9756, 1.0569], demand: [1.0, 1.0804, 1.1705, 1.0],
+        basePrice: [1.0, 1.03, 1.06, 1.09], targetLoad: [1.0, 0.9684, 0.9158, 0.8421], energy: [1.0, 1.04, 1.08, 1.12],
+        contracts: [1.0, 0.9714, 1.0, 0.9286], craft: [1.0, 0.9, 0.75, 1.25]
+    };
+    const years = [2025,2026,2027,2028];
+    function getTrendData() {
+        let base = currentParams;
+        let data = [];
+        for (let i=0; i<years.length; i++) {
+            let p = {
+                barley: base.barley * multTrend.barley[i], yield: base.yield * multTrend.yield[i],
+                demand: base.demand * multTrend.demand[i], basePrice: base.basePrice * multTrend.basePrice[i],
+                load: base.load * multTrend.targetLoad[i], waste: base.waste, energy: base.energy * multTrend.energy[i],
+                contracts: base.contracts * multTrend.contracts[i], craft: base.craft * multTrend.craft[i]
+            };
+            if (p.yield<20) p.yield=20; if (p.energy<60) p.energy=60;
+            let fin = computeFinance(p);
+            data.push({ year: years[i], fin, params: p });
+        }
+        return data;
+    }
+    
+    let marketChart, controlChart, financialChart, revenueVolumeChart;
+    function updateAllCharts() {
+        let data = getTrendData();
+        let yrs = data.map(d=>d.year);
+        if (marketChart) marketChart.destroy();
+        marketChart = new Chart(document.getElementById('marketChart'), { type:'line', data:{ labels: yrs, datasets:[
+            { label:'Цена ячменя (руб/т)', data:data.map(d=>d.params.barley), borderColor:'#3c8d7c', tension:0.2, pointRadius:3, yAxisID:'y' },
+            { label:'Урожайность (ц/га)', data:data.map(d=>d.params.yield), borderColor:'#e5a13a', tension:0.2, pointRadius:3, yAxisID:'y1' },
+            { label:'Спрос на пиво (%)', data:data.map(d=>d.params.demand), borderColor:'#b1624b', tension:0.2, pointRadius:3, yAxisID:'y1' }
+        ] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ font:{ size:9 } } } },
+        scales:{ y:{ min:10000, max:30000, ticks:{ stepSize:2000 }, title:{ display:true, text:'руб/т' } },
+                y1:{ position:'right', min:20, max:160, ticks:{ stepSize:20 }, title:{ text:'ц/га / %' } } } } });
+        if (controlChart) controlChart.destroy();
+        controlChart = new Chart(document.getElementById('controlChart'), { type:'line', data:{ labels: yrs, datasets:[
+            { label:'Целевая загрузка (%)', data:data.map(d=>d.params.load), borderColor:'#2a7f6e', tension:0.2, pointRadius:3, yAxisID:'y' },
+            { label:'Сушка (% расхода)', data:data.map(d=>d.params.energy), borderColor:'#e5a13a', tension:0.2, pointRadius:3, yAxisID:'y' },
+            { label:'Контракты (%)', data:data.map(d=>d.params.contracts), borderColor:'#3c8d7c', tension:0.2, pointRadius:3, yAxisID:'y' },
+            { label:'Доля крафта (%)', data:data.map(d=>d.params.craft), borderColor:'#8e6b4b', tension:0.2, pointRadius:3, yAxisID:'y' },
+            { label:'Базовая цена (тыс. ₽/т)', data:data.map(d=>d.params.basePrice/1000), borderColor:'#b1624b', borderWidth:2, tension:0.2, pointRadius:3, yAxisID:'y1' }
+        ] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ font:{ size:9 } } } },
+        scales:{ y:{ min:0, max:180, ticks:{ stepSize:20 }, title:{ text:'%' } }, y1:{ position:'right', min:0, max:50, ticks:{ stepSize:10 }, title:{ text:'тыс. руб/т' } } } } });
+        if (financialChart) financialChart.destroy();
+        financialChart = new Chart(document.getElementById('financialChart'), { type:'line', data:{ labels: yrs, datasets:[
+            { label:'EBITDA (млн ₽)', data:data.map(d=>d.fin.ebitda/1e6), borderColor:'#2a7f6e', tension:0.2, pointRadius:4, yAxisID:'y' },
+            { label:'Маржинальность (%)', data:data.map(d=>d.fin.margin), borderColor:'#e5a13a', tension:0.2, pointRadius:4, yAxisID:'y1' },
+            { label:'EBITDA margin (%)', data:data.map(d=>d.fin.ebitdaMargin), borderColor:'#b1624b', tension:0.2, pointRadius:4, yAxisID:'y1' },
+            { label:'Загрузка итог (%)', data:data.map(d=>d.fin.finalLoad), borderColor:'#3c8d7c', tension:0.2, pointRadius:4, yAxisID:'y1' }
+        ] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ font:{ size:9 } } } },
+        scales:{ y:{ min:-4000, max:4000, ticks:{ stepSize:1000 }, title:{ text:'млн ₽' } }, y1:{ position:'right', min:-40, max:100, ticks:{ stepSize:20 }, title:{ text:'%' } } } } });
+        if (revenueVolumeChart) revenueVolumeChart.destroy();
+        revenueVolumeChart = new Chart(document.getElementById('revenueVolumeChart'), { type:'line', data:{ labels: yrs, datasets:[
+            { label:'Выручка (млрд ₽)', data:data.map(d=>d.fin.revenues/1e9), borderColor:'#2a7f6e', tension:0.2, pointRadius:4, yAxisID:'y' },
+            { label:'Объём (тыс. т)', data:data.map(d=>d.fin.volume/1000), borderColor:'#e5a13a', tension:0.2, pointRadius:4, yAxisID:'y1' }
+        ] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top', labels:{ font:{ size:9 } } } },
+        scales:{ y:{ min:5, max:15, ticks:{ stepSize:2 }, title:{ text:'млрд ₽' } }, y1:{ position:'right', min:100, max:300, ticks:{ stepSize:40 }, title:{ text:'тыс. т' } } } } });
+    }
+    
+    function updateKPIs() {
+        let fin = computeFinance(currentParams);
+        document.getElementById('finalLoad').innerHTML = fin.finalLoad.toFixed(1);
+        document.getElementById('volume').innerHTML = Math.round(fin.volume).toLocaleString();
+        document.getElementById('revenue').innerHTML = (fin.revenues/1e6).toFixed(0);
+        document.getElementById('contrMarginPct').innerHTML = fin.margin.toFixed(1);
+        let ebitdaSpan = document.getElementById('ebitda');
+        ebitdaSpan.innerHTML = (fin.ebitda/1e6).toFixed(0);
+        ebitdaSpan.className = fin.ebitda>=0 ? 'badge-positive' : 'badge-negative';
+        document.getElementById('ebitdaMargin').innerHTML = fin.ebitdaMargin.toFixed(1);
+        document.getElementById('barleyCostDetail').innerHTML = Math.round(fin.barleyCost).toLocaleString()+' ₽';
+        document.getElementById('energyCostDetail').innerHTML = Math.round(fin.energyCost).toLocaleString()+' ₽';
+        document.getElementById('otherVarDetail').innerHTML = Math.round(fin.otherVar).toLocaleString()+' ₽';
+        document.getElementById('totalVcPerTon').innerHTML = Math.round(fin.varPerTon).toLocaleString()+' ₽';
+        document.getElementById('fixedPerTonDetail').innerHTML = Math.round(fin.fixedPerTon).toLocaleString()+' ₽';
+        document.getElementById('fullCostPerTon').innerHTML = Math.round(fin.fixedPerTon+fin.varPerTon).toLocaleString()+' ₽';
+        document.getElementById('avgPricePerTon').innerHTML = Math.round(fin.avgPrice).toLocaleString()+' ₽';
+        document.getElementById('contrPerTon').innerHTML = Math.round(fin.contributionPerTon).toLocaleString()+' ₽';
+        document.getElementById('fixedHintScale').innerHTML = `при загрузке ${fin.finalLoad.toFixed(0)}% → ${Math.round(fin.fixedPerTon).toLocaleString()} ₽/т`;
+        
+        let totalShare=0; for(let s of Object.values(PRODUCT_MIX)) totalShare+=s;
+        let vols={}; for(let [prod,share] of Object.entries(PRODUCT_MIX)) vols[prod] = fin.volume*(share/totalShare);
+        let mix=[];
+        for(let prod of ['base','caramel','roasted','smoked','hop','tolling']) {
+            let price = prod==='base' ? fin.basePrice : fin.basePrice*SPEC_PRICE_MULT[prod];
+            let perc = (vols[prod]*price/fin.revenues*100).toFixed(0);
+            let name = prod==='base'?'Базовый':prod==='caramel'?'Карам':prod==='roasted'?'Жжён':prod==='smoked'?'Копч':prod==='hop'?'Хмель':'Толл.';
+            mix.push(`${name} ${perc}%`);
+        }
+        document.getElementById('mixInfo').innerHTML = '📊 Структура выручки: '+mix.join(' · ');
+    }
+    
+    function updateAnalysisTab() {
+        let fin = computeFinance(currentParams);
+        let dynRec = [];
+        if(currentParams.waste>5.5) dynRec.push({ title:`Снижение потерь (с ${currentParams.waste}% до 4,5%)`, detail:`Калибровка сит, обучение операторов.` });
+        if(currentParams.energy>95) dynRec.push({ title:`Оптимизация сушки (с ${currentParams.energy}% до 90%)`, detail:`Установка частотных преобразователей, автоматизация.` });
+        if(currentParams.craft<10) dynRec.push({ title:`Рост крафта (с ${currentParams.craft}% до 10%)`, detail:`Малые упаковки, фестивали.` });
+        if(currentParams.basePrice<36000 && fin.margin<20) dynRec.push({ title:`Повышение цены (с ${currentParams.basePrice} до 38 000 ₽/т)`, detail:`Акцент на качество, импортозамещение.` });
+        if(currentParams.contracts<70) dynRec.push({ title:`Увеличение контрактов (с ${currentParams.contracts}% до 75%)`, detail:`Программа лояльности.` });
+        if(fin.finalLoad<75) dynRec.push({ title:`Рост загрузки (с ${fin.finalLoad.toFixed(0)}% до 85%)`, detail:`Активный маркетинг, экспорт.` });
+        const dynamicBlock = dynRec.length ? `<h4>🔧 Рекомендации по отклонениям</h4>${dynRec.map(r=>`<div class="rec-item"><div class="rec-title">${r.title}</div><div class="rec-detail">${r.detail}</div></div>`).join('')}` : '<p>✅ Отклонений нет.</p>';
+        const analysisHtml = `<h3>📊 Анализ (${activeYear} год)</h3><p><strong>EBITDA:</strong> <span class="${fin.ebitda>=0?'badge-positive':'badge-negative'}">${(fin.ebitda/1e6).toFixed(0)} млн ₽</span><br><strong>Маржинальность:</strong> ${fin.margin.toFixed(1)}%<br><strong>EBITDA margin:</strong> ${fin.ebitdaMargin.toFixed(1)}%<br><strong>Загрузка итог:</strong> ${fin.finalLoad.toFixed(0)}% → объём ${Math.round(fin.volume).toLocaleString()} т<br><strong>Средняя цена:</strong> ${Math.round(fin.avgPrice).toLocaleString()} ₽/т<br><strong>Себестоимость полная:</strong> ${Math.round(fin.fixedPerTon+fin.varPerTon).toLocaleString()} ₽/т<br><strong>Множитель качества:</strong> ${fin.qualityMult.toFixed(3)}</p>${dynamicBlock}<p><em>Двойной клик по году сбрасывает к предустановкам. AI-ассистент обновляет предустановки через ваш сервер.</em></p>`;
+        document.getElementById('analysisText').innerHTML = analysisHtml;
+    }
+    
+    function savePresetsToStorage() { localStorage.setItem('greinrus_yearPresets', JSON.stringify(yearPresets)); }
+    function loadPresetsFromStorage() {
+        const saved = localStorage.getItem('greinrus_yearPresets');
+        if (saved) yearPresets = JSON.parse(saved);
+        else yearPresets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+        renderPresetEditor();
+    }
+    function renderPresetEditor() {
+        const container = document.getElementById('presetEditorContainer');
+        if (!container) return;
+        let html = '<h3>✏️ Редактирование предустановок годов</h3>';
+        for (let year of [2025,2026,2027,2028]) {
+            let p = yearPresets[year];
+            html += `<div class="preset-year"><h4>${year} год</h4><div class="preset-fields">
+                <div class="preset-field"><label>Цена ячменя</label><input type="number" id="preset_barley_${year}" value="${p.barley}" step="50"></div>
+                <div class="preset-field"><label>Урожайность</label><input type="number" id="preset_yield_${year}" value="${p.yield}" step="0.1"></div>
+                <div class="preset-field"><label>Спрос</label><input type="number" id="preset_demand_${year}" value="${p.demand}" step="0.5"></div>
+                <div class="preset-field"><label>Базовая цена</label><input type="number" id="preset_basePrice_${year}" value="${p.basePrice}" step="100"></div>
+                <div class="preset-field"><label>Загрузка</label><input type="number" id="preset_load_${year}" value="${p.load}" step="1"></div>
+                <div class="preset-field"><label>Потери</label><input type="number" id="preset_waste_${year}" value="${p.waste}" step="0.2"></div>
+                <div class="preset-field"><label>Сушка</label><input type="number" id="preset_energy_${year}" value="${p.energy}" step="2"></div>
+                <div class="preset-field"><label>Контракты</label><input type="number" id="preset_contracts_${year}" value="${p.contracts}" step="2"></div>
+                <div class="preset-field"><label>Крафт</label><input type="number" id="preset_craft_${year}" value="${p.craft}" step="0.5"></div>
+            </div></div>`;
+        }
+        container.innerHTML = html + `<div style="margin-top:12px;"><button id="applyPresetsBtn" class="rec-apply-btn">Применить изменения из редактора</button></div>`;
+        document.getElementById('applyPresetsBtn')?.addEventListener('click', () => {
+            for (let year of [2025,2026,2027,2028]) {
+                yearPresets[year] = {
+                    barley: parseFloat(document.getElementById(`preset_barley_${year}`).value),
+                    yield: parseFloat(document.getElementById(`preset_yield_${year}`).value),
+                    demand: parseFloat(document.getElementById(`preset_demand_${year}`).value),
+                    basePrice: parseFloat(document.getElementById(`preset_basePrice_${year}`).value),
+                    load: parseFloat(document.getElementById(`preset_load_${year}`).value),
+                    waste: parseFloat(document.getElementById(`preset_waste_${year}`).value),
+                    energy: parseFloat(document.getElementById(`preset_energy_${year}`).value),
+                    contracts: parseFloat(document.getElementById(`preset_contracts_${year}`).value),
+                    craft: parseFloat(document.getElementById(`preset_craft_${year}`).value)
+                };
+            }
+            savePresetsToStorage();
+            alert('Предустановки обновлены');
+        });
+    }
+    function resetPresetsToDefault() { yearPresets = JSON.parse(JSON.stringify(DEFAULT_PRESETS)); savePresetsToStorage(); renderPresetEditor(); alert('Предустановки сброшены к исходным'); }
+    
+    let situations = {};
+    function loadSituations() {
+        const saved = localStorage.getItem('greinrus_situations');
+        if (saved) situations = JSON.parse(saved);
+        else situations = {};
+        renderSituations();
+    }
+    function saveCurrentSituation(name) { if (!name.trim()) return; situations[name] = {...currentParams}; localStorage.setItem('greinrus_situations', JSON.stringify(situations)); renderSituations(); }
+    function deleteSituation(name) { delete situations[name]; localStorage.setItem('greinrus_situations', JSON.stringify(situations)); renderSituations(); }
+    function renderSituations() {
+        const container = document.getElementById('situationsList');
+        if (!container) return;
+        const names = Object.keys(situations);
+        if (names.length === 0) { container.innerHTML = '<p>Нет сохранённых ситуаций.</p>'; return; }
+        let html = '';
+        for (let name of names) {
+            html += `<div class="situation-item"><span class="situation-name" ondblclick="window.loadSituation('${name.replace(/'/g,"\\'")}')">📂 ${name}</span><button class="rec-apply-btn" onclick="window.loadSituation('${name.replace(/'/g,"\\'")}')">Загрузить</button><button class="rec-apply-btn" style="background:#c95a4a;" onclick="window.deleteSituation('${name.replace(/'/g,"\\'")}')">Удалить</button></div>`;
+        }
+        container.innerHTML = html;
+    }
+    window.loadSituation = function(name) { if(situations[name]) { setSlidersFromParams(situations[name]); currentParams = {...situations[name]}; currentParamsPerYear[activeYear]={...currentParams}; fullUpdate(); } };
+    window.deleteSituation = function(name) { deleteSituation(name); };
+    
+    const recommendationLibrary = [
+        { name:"Снижение потерь", params:{ waste:4.5 }, description:"Калибровка сит, обучение операторов." },
+        { name:"Оптимизация сушки", params:{ energy:90 }, description:"Снижение до 90% – качество+экономия." },
+        { name:"Рост крафта", params:{ craft:10 }, description:"Малые упаковки, фестивали." },
+        { name:"Повышение цены", params:{ basePrice:38000 }, description:"Акцент на качество, импортозамещение." },
+        { name:"Увеличение контрактов", params:{ contracts:75 }, description:"Программа лояльности." },
+        { name:"Рост загрузки", params:{ load:88 }, description:"Активный маркетинг, экспорт." }
+    ];
+    function renderRecommendations() {
+        const container = document.getElementById('recommendationsList');
+        if (!container) return;
+        let html = '';
+        for (let rec of recommendationLibrary) {
+            html += `<div class="rec-item"><div class="rec-title">📌 ${rec.name}</div><div class="rec-detail">${rec.description}</div><button class="rec-apply-btn" data-rec-name="${rec.name}">Применить</button></div>`;
+        }
+        container.innerHTML = html;
+        document.querySelectorAll('#recommendationsList .rec-apply-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const recName = btn.getAttribute('data-rec-name');
+                const rec = recommendationLibrary.find(r => r.name === recName);
+                if (rec) {
+                    let newParams = { ...currentParams, ...rec.params };
+                    setSlidersFromParams(newParams);
+                    currentParams = newParams;
+                    currentParamsPerYear[activeYear] = { ...currentParams };
+                    fullUpdate();
+                }
+            });
+        });
+    }
+    
+    async function askAI(question) {
+        const responseDiv = document.getElementById('aiResponse');
+        responseDiv.innerHTML = '⏳ Отправка запроса...';
+        try {
+            const resp = await fetch(SERVER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question })
+            });
+            const data = await resp.json();
+            if (data.success && data.updates) {
+                let updatedYears = 0;
+                for (let yearStr in data.updates) {
+                    let year = parseInt(yearStr);
+                    if (yearPresets[year]) {
+                        Object.assign(yearPresets[year], data.updates[yearStr]);
+                        updatedYears++;
+                    }
+                }
+                if (updatedYears > 0) {
+                    savePresetsToStorage();
+                    renderPresetEditor();
+                    responseDiv.innerHTML = `✅ Предустановки обновлены для ${updatedYears} года(лет). Теперь двойной клик по кнопке года сбросит параметры к новым значениям.`;
+                } else {
+                    responseDiv.innerHTML = `⚠️ Не удалось применить обновления (не найдены годы в ответе). Ответ: ${JSON.stringify(data.updates)}`;
+                }
+            } else {
+                responseDiv.innerHTML = `❌ Ошибка: ${data.error || 'неизвестная'}<br>Ответ: ${data.raw || ''}`;
+            }
+        } catch (err) {
+            responseDiv.innerHTML = `❌ Ошибка соединения с сервером: ${err.message}. Убедитесь, что сервер запущен на ${SERVER_URL}`;
+        }
+    }
+    
+    function setActiveYear(year) {
+        activeYear = year;
+        const params = currentParamsPerYear[year];
+        setSlidersFromParams(params);
+        currentParams = { ...params };
+        fullUpdate();
+        document.querySelectorAll('.year-btn').forEach(btn => {
+            if (parseInt(btn.getAttribute('data-year')) === year) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+    function resetYearToPreset(year) {
+        const preset = yearPresets[year];
+        if (preset) {
+            currentParamsPerYear[year] = JSON.parse(JSON.stringify(preset));
+            if (activeYear === year) {
+                setSlidersFromParams(currentParamsPerYear[year]);
+                currentParams = { ...currentParamsPerYear[year] };
+                fullUpdate();
+            }
+        }
+        const btn = document.querySelector(`.year-btn[data-year="${year}"]`);
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = '', 150);
+    }
+    function fullUpdate() {
+        currentParams = getSliderValues();
+        currentParamsPerYear[activeYear] = { ...currentParams };
+        updateSliderDisplays(currentParams);
+        updateKPIs();
+        updateAllCharts();
+        updateAnalysisTab();
+    }
+    
+    async function printCurrentTab() {
+        const activeTabContent = document.querySelector('.tab-content.active');
+        if (!activeTabContent) return;
+        const clone = activeTabContent.cloneNode(true);
+        const canvases = clone.querySelectorAll('canvas');
+        for (let canvas of canvases) {
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL();
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            canvas.parentNode.replaceChild(img, canvas);
+        }
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<!DOCTYPE html><html><head><title>ГрейнРус – ${activeTabContent.id === 'modelTab' ? 'Модель' : 'Анализ'}</title><style>body { font-family: 'Inter', sans-serif; padding: 20px; } .no-print, .year-buttons, .tabs, .footer, .rec-apply-btn, .print-btn, .api-panel, .preset-editor, .situation-item button { display: none; } img { max-width: 100%; }</style></head><body>${clone.outerHTML}</body></html>`);
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    function initHelp() {
+        const modal = document.getElementById('helpModal');
+        const helpBtn = document.getElementById('helpBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        helpBtn.addEventListener('click', () => modal.style.display = 'flex');
+        closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    
+    function init() {
+        loadPresetsFromStorage();
+        for (let y of [2025,2026,2027,2028]) currentParamsPerYear[y] = JSON.parse(JSON.stringify(yearPresets[y]));
+        setActiveYear(2025);
+        
+        document.querySelectorAll('.year-btn').forEach(btn => {
+            const year = parseInt(btn.getAttribute('data-year'));
+            btn.addEventListener('click', (e) => { e.stopPropagation(); setActiveYear(year); });
+            btn.addEventListener('dblclick', (e) => { e.stopPropagation(); resetYearToPreset(year); });
+        });
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                if (tabId === 'model') document.getElementById('modelTab').classList.add('active');
+                else { document.getElementById('analysisTab').classList.add('active'); updateAnalysisTab(); renderSituations(); renderRecommendations(); renderPresetEditor(); }
+            });
+        });
+        
+        const sliders = ['barley', 'yield_', 'demand', 'basePrice', 'load', 'waste', 'energy', 'contracts', 'craft'];
+        sliders.forEach(id => { document.getElementById(id).addEventListener('input', fullUpdate); });
+        
+        document.getElementById('askAiBtn')?.addEventListener('click', () => {
+            const q = document.getElementById('aiQuestion').value.trim();
+            if (q) askAI(q);
+            else alert('Введите вопрос');
+        });
+        document.getElementById('savePresetsBtn')?.addEventListener('click', () => { savePresetsToStorage(); alert('Предустановки сохранены'); });
+        document.getElementById('resetPresetsBtn')?.addEventListener('click', resetPresetsToDefault);
+        document.getElementById('saveSituationBtn')?.addEventListener('click', () => {
+            const name = document.getElementById('situationName').value.trim();
+            if (name) saveCurrentSituation(name);
+            else alert('Введите название ситуации');
+            document.getElementById('situationName').value = '';
+        });
+        document.getElementById('printTabBtn')?.addEventListener('click', printCurrentTab);
+        
+        loadSituations();
+        renderRecommendations();
+        initHelp();
+    }
+    init();
+</script>
+</body>
+</html>            height: 32px;
             border-radius: 30px;
             font-weight: 700;
             font-size: 1.1rem;
