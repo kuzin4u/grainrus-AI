@@ -11,8 +11,8 @@ app.use(express.json());
 
 const API_KEY = process.env.PROXY_API_KEY || process.env.DEEPSEEK_API_KEY;
 const API_BASE_URL = process.env.API_BASE_URL || 'https://openai.api.proxyapi.ru/v1/chat/completions';
-// const MODEL_NAME = process.env.MODEL_NAME || 'deepseek-chat';
-const MODEL_NAME='openrouter/openrouter/free';
+const MODEL_NAME = process.env.MODEL_NAME || 'deepseek-chat';
+// const MODEL_NAME='openrouter/openrouter/free';
 if (!API_KEY) console.error('❌ API-ключ не задан!');
 
 // Системный промпт с инструкциями по прогнозированию
